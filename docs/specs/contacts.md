@@ -13,7 +13,7 @@ Authorization: Bearer <token>
 **Request:**
 ```json
 {
-  "contact_user_unique_id": "A8LSIWVLGZ1Q"
+  "userId": "A8LSIWVLGZ1Q"
 }
 ```
 
@@ -23,8 +23,14 @@ Authorization: Bearer <token>
   "success": true,
   "data": {
     "contact": {
-      "contact_user_unique_id": "A8LSIWVLGZ1Q",
-      "contact_name": "María García"
+      "id": "cnt_abc123def456",
+      "ownerId": "TFJOTJQEL4P3",
+      "contactUserId": "A8LSIWVLGZ1Q",
+      "contact": {
+        "id": "A8LSIWVLGZ1Q",
+        "name": "María García"
+      },
+      "createdAt": "2026-09-07T10:00:00Z"
     }
   }
 }
@@ -52,12 +58,24 @@ Authorization: Bearer <token>
   "data": {
     "contacts": [
       {
-        "contact_user_unique_id": "A8LSIWVLGZ1Q",
-        "contact_name": "María García"
+        "id": "cnt_abc123def456",
+        "ownerId": "TFJOTJQEL4P3",
+        "contactUserId": "A8LSIWVLGZ1Q",
+        "contact": {
+          "id": "A8LSIWVLGZ1Q",
+          "name": "María García"
+        },
+        "createdAt": "2026-09-07T10:00:00Z"
       },
       {
-        "contact_user_unique_id": "B9MTXJWPMH2R",
-        "contact_name": "Carlos López"
+        "id": "cnt_bcd234efg567",
+        "ownerId": "TFJOTJQEL4P3",
+        "contactUserId": "B9MTXJWPMH2R",
+        "contact": {
+          "id": "B9MTXJWPMH2R",
+          "name": "Carlos López"
+        },
+        "createdAt": "2026-09-07T11:00:00Z"
       }
     ],
     "count": 2
@@ -66,7 +84,31 @@ Authorization: Bearer <token>
 ```
 
 ## Reglas de Negocio
-- Solo se retorna el Nombre e ID Único del contacto (no datos sensibles)
+- Solo se retorna el Nombre e ID Único del contacto (se consulta desde users, no se almacena en contacts)
 - No se puede agregar a sí mismo como contacto
 - No se pueden agregar contactos duplicados
 - Los contactos se vinculan mediante el ID único del usuario
+
+## Modelo de Datos
+
+### Contact
+```typescript
+{
+  id: string           // VARCHAR(36), UUID
+  ownerId: string     // VARCHAR(12), FK a User (propietario)
+  contactUserId: string // VARCHAR(12), FK a User (contacto agregado)
+  createdAt: Date
+}
+```
+
+**Constraint:** `UNIQUE unique_contact (ownerId, contactUserId)`
+
+**Nota:** El campo `contact.name` se obtiene mediante JOIN con `users`, NO se almacena en la tabla contacts.
+
+## Índices
+
+| Índice | Columna | Tipo |
+|--------|---------|------|
+| unique_contact | (ownerId, contactUserId) | UNIQUE |
+| idx_contacts_owner | ownerId | INDEX |
+| idx_contacts_contact | contactUserId | INDEX |

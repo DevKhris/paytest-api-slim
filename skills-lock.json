@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "php-development": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "php-development/SKILL.md",
+      "computedHash": "f5ea5b9a3b826ad958b8ebca8ceee4d843b36a1e957c365a6625bdda05d68c74"
+    }
+  }
+}

@@ -15,29 +15,29 @@ namespace PayTest\Models;
 
 class User
 {
-    private string $uniqueId;
+    private string $id;
     private string $name;
     private string $passwordHash;
-    private \DateTimeImmutable $createdAt;
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $createdAt;
+    private DateTimeImmutable $updatedAt;
 
     public function __construct(
-        string $uniqueId,
+        string $id,
         string $name,
         string $passwordHash,
-        ?\DateTimeImmutable $createdAt = null,
-        ?\DateTimeImmutable $updatedAt = null
+        ?DateTimeImmutable $createdAt = null,
+        ?DateTimeImmutable $updatedAt = null
     ) {
-        $this->uniqueId = $uniqueId;
+        $this->id = $id;
         $this->name = $name;
         $this->passwordHash = $passwordHash;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
-        $this->updatedAt = $updatedAt ?? new \DateTimeImmutable();
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
+        $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
-    public function getUniqueId(): string
+    public function getId(): string
     {
-        return $this->uniqueId;
+        return $this->id;
     }
 
     public function getName(): string
@@ -48,7 +48,7 @@ class User
     public function setName(string $name): void
     {
         $this->name = $name;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getPasswordHash(): string
@@ -56,12 +56,12 @@ class User
         return $this->passwordHash;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -69,7 +69,7 @@ class User
     public function toArray(): array
     {
         return [
-            'unique_id' => $this->uniqueId,
+            'id' => $this->id,
             'name' => $this->name,
             'password_hash' => $this->passwordHash,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
@@ -87,63 +87,52 @@ namespace PayTest\Models;
 
 class Account
 {
-    private int $id;
-    private string $userUniqueId;
-    private float $balance;
-    private \DateTimeImmutable $createdAt;
-    private \DateTimeImmutable $updatedAt;
+    private string $id;
+    private string $userId;
+    private DateTimeImmutable $createdAt;
+    private DateTimeImmutable $updatedAt;
 
     public function __construct(
-        int $id,
-        string $userUniqueId,
-        float $balance = 0.0,
-        ?\DateTimeImmutable $createdAt = null,
-        ?\DateTimeImmutable $updatedAt = null
+        string $id,
+        string $userId,
+        ?DateTimeImmutable $createdAt = null,
+        ?DateTimeImmutable $updatedAt = null
     ) {
         $this->id = $id;
-        $this->userUniqueId = $userUniqueId;
-        $this->balance = $balance;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
-        $this->updatedAt = $updatedAt ?? new \DateTimeImmutable();
+        $this->userId = $userId;
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
+        $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function getUserUniqueId(): string
+    public function getUserId(): string
     {
-        return $this->userUniqueId;
+        return $this->userId;
     }
 
-    public function getBalance(): float
-    {
-        return $this->balance;
-    }
-
-    public function setBalance(float $balance): void
-    {
-        $this->balance = $balance;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
+    /**
+     * Balance se calcula dinámicamente desde transactions.
+     * NO se almacena en la tabla.
+     */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
-            'user_unique_id' => $this->userUniqueId,
-            'balance' => $this->balance,
+            'user_id' => $this->userId,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];
@@ -163,53 +152,48 @@ class Transaction
     public const TYPE_SPEND = 'SPEND';
     public const TYPE_REQUEST = 'REQUEST';
 
-    private int $id;
+    private string $id;
+    private string $accountId;
     private string $idempotencyKey;
-    private string $accountUserUniqueId;
-    private ?string $counterpartUserUniqueId;
     private string $type;
     private float $amount;
+    private ?string $relatedUserId;
     private ?string $description;
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct(
-        int $id,
+        string $id,
+        string $accountId,
         string $idempotencyKey,
-        string $accountUserUniqueId,
-        ?string $counterpartUserUniqueId,
         string $type,
         float $amount,
+        ?string $relatedUserId = null,
         ?string $description = null,
-        ?\DateTimeImmutable $createdAt = null
+        ?DateTimeImmutable $createdAt = null
     ) {
         $this->id = $id;
+        $this->accountId = $accountId;
         $this->idempotencyKey = $idempotencyKey;
-        $this->accountUserUniqueId = $accountUserUniqueId;
-        $this->counterpartUserUniqueId = $counterpartUserUniqueId;
         $this->type = $type;
         $this->amount = $amount;
+        $this->relatedUserId = $relatedUserId;
         $this->description = $description;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getAccountId(): string
+    {
+        return $this->accountId;
     }
 
     public function getIdempotencyKey(): string
     {
         return $this->idempotencyKey;
-    }
-
-    public function getAccountUserUniqueId(): string
-    {
-        return $this->accountUserUniqueId;
-    }
-
-    public function getCounterpartUserUniqueId(): ?string
-    {
-        return $this->counterpartUserUniqueId;
     }
 
     public function getType(): string
@@ -222,12 +206,17 @@ class Transaction
         return $this->amount;
     }
 
+    public function getRelatedUserId(): ?string
+    {
+        return $this->relatedUserId;
+    }
+
     public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -236,11 +225,11 @@ class Transaction
     {
         return [
             'id' => $this->id,
+            'account_id' => $this->accountId,
             'idempotency_key' => $this->idempotencyKey,
-            'account_user_unique_id' => $this->accountUserUniqueId,
-            'counterpart_user_unique_id' => $this->counterpartUserUniqueId,
             'type' => $this->type,
             'amount' => $this->amount,
+            'related_user_id' => $this->relatedUserId,
             'description' => $this->description,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
         ];
@@ -256,58 +245,53 @@ namespace PayTest\Models;
 
 class Contact
 {
-    private int $id;
-    private string $ownerUserUniqueId;
-    private string $contactUserUniqueId;
-    private string $contactName;
-    private \DateTimeImmutable $createdAt;
+    private string $id;
+    private string $ownerId;
+    private string $contactUserId;
+    private DateTimeImmutable $createdAt;
 
     public function __construct(
-        int $id,
-        string $ownerUserUniqueId,
-        string $contactUserUniqueId,
-        string $contactName,
-        ?\DateTimeImmutable $createdAt = null
+        string $id,
+        string $ownerId,
+        string $contactUserId,
+        ?DateTimeImmutable $createdAt = null
     ) {
         $this->id = $id;
-        $this->ownerUserUniqueId = $ownerUserUniqueId;
-        $this->contactUserUniqueId = $contactUserUniqueId;
-        $this->contactName = $contactName;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        $this->ownerId = $ownerId;
+        $this->contactUserId = $contactUserId;
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function getOwnerUserUniqueId(): string
+    public function getOwnerId(): string
     {
-        return $this->ownerUserUniqueId;
+        return $this->ownerId;
     }
 
-    public function getContactUserUniqueId(): string
+    public function getContactUserId(): string
     {
-        return $this->contactUserUniqueId;
+        return $this->contactUserId;
     }
 
-    public function getContactName(): string
-    {
-        return $this->contactName;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
+    /**
+     * El nombre del contacto se obtiene consultando users joined.
+     * NO se almacena en la tabla contacts.
+     */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
-            'owner_user_unique_id' => $this->ownerUserUniqueId,
-            'contact_user_unique_id' => $this->contactUserUniqueId,
-            'contact_name' => $this->contactName,
+            'owner_id' => $this->ownerId,
+            'contact_user_id' => $this->contactUserId,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
         ];
     }
@@ -322,40 +306,43 @@ namespace PayTest\Models;
 
 class Session
 {
-    private int $id;
-    private string $userUniqueId;
+    private string $id;
+    private string $userId;
     private string $token;
     private ?string $ipAddress;
     private ?string $userAgent;
-    private \DateTimeImmutable $createdAt;
-    private \DateTimeImmutable $expiresAt;
+    private string $status;
+    private DateTimeImmutable $createdAt;
+    private DateTimeImmutable $expiresAt;
 
     public function __construct(
-        int $id,
-        string $userUniqueId,
+        string $id,
+        string $userId,
         string $token,
         ?string $ipAddress = null,
         ?string $userAgent = null,
-        ?\DateTimeImmutable $createdAt = null,
-        ?\DateTimeImmutable $expiresAt = null
+        string $status = 'ACTIVE',
+        ?DateTimeImmutable $createdAt = null,
+        ?DateTimeImmutable $expiresAt = null
     ) {
         $this->id = $id;
-        $this->userUniqueId = $userUniqueId;
+        $this->userId = $userId;
         $this->token = $token;
         $this->ipAddress = $ipAddress;
         $this->userAgent = $userAgent;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
-        $this->expiresAt = $expiresAt ?? new \DateTimeImmutable();
+        $this->status = $status;
+        $this->createdAt = $createdAt ?? new DateTimeImmutable();
+        $this->expiresAt = $expiresAt ?? new DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function getUserUniqueId(): string
+    public function getUserId(): string
     {
-        return $this->userUniqueId;
+        return $this->userId;
     }
 
     public function getToken(): string
@@ -373,29 +360,35 @@ class Session
         return $this->userAgent;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getExpiresAt(): \DateTimeImmutable
+    public function getExpiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
     public function isExpired(): bool
     {
-        return $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt < new DateTimeImmutable() || $this->status === 'EXPIRED';
     }
 
     public function toArray(): array
     {
         return [
             'id' => $this->id,
-            'user_unique_id' => $this->userUniqueId,
+            'user_id' => $this->userId,
             'token' => $this->token,
             'ip_address' => $this->ipAddress,
             'user_agent' => $this->userAgent,
+            'status' => $this->status,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'expires_at' => $this->expiresAt->format('Y-m-d H:i:s'),
         ];
@@ -574,7 +567,7 @@ class AuthResponse
 
 ## 2.3 Repositories (src/Repositories/)
 
-### UserRepositoryInterface.php y UserRepository.php
+### UserRepository.php
 ```php
 <?php
 
@@ -584,58 +577,58 @@ use PayTest\Models\User;
 
 interface UserRepositoryInterface
 {
-    public function findByUniqueId(string $uniqueId): ?User;
+    public function findById(string $id): ?User;
     public function save(User $user): bool;
-    public function existsByUniqueId(string $uniqueId): bool;
+    public function existsById(string $id): bool;
 }
 
 class UserRepository implements UserRepositoryInterface
 {
-    private \PDO $pdo;
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    public function findByUniqueId(string $uniqueId): ?User
+    public function findById(string $id): ?User
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM users WHERE unique_id = :unique_id'
+            'SELECT * FROM users WHERE id = :id'
         );
-        $stmt->execute(['unique_id' => $uniqueId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if (!$row) {
             return null;
         }
-        
+
         return new User(
-            $row['unique_id'],
+            $row['id'],
             $row['name'],
             $row['password_hash'],
-            new \DateTimeImmutable($row['created_at']),
-            new \DateTimeImmutable($row['updated_at'])
+            new DateTimeImmutable($row['created_at']),
+            new DateTimeImmutable($row['updated_at'])
         );
     }
 
     public function save(User $user): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO users (unique_id, name, password_hash, created_at, updated_at) 
-             VALUES (:unique_id, :name, :password_hash, :created_at, :updated_at)'
+            'INSERT INTO users (id, name, password_hash, created_at, updated_at)
+             VALUES (:id, :name, :password_hash, :created_at, :updated_at)'
         );
-        
+
         return $stmt->execute($user->toArray());
     }
 
-    public function existsByUniqueId(string $uniqueId): bool
+    public function existsById(string $id): bool
     {
         $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM users WHERE unique_id = :unique_id'
+            'SELECT 1 FROM users WHERE id = :id'
         );
-        $stmt->execute(['unique_id' => $uniqueId]);
-        
+        $stmt->execute(['id' => $id]);
+
         return $stmt->fetch() !== false;
     }
 }
@@ -651,63 +644,68 @@ use PayTest\Models\Account;
 
 interface AccountRepositoryInterface
 {
-    public function findByUserUniqueId(string $userUniqueId): ?Account;
+    public function findByUserId(string $userId): ?Account;
+    public function findById(string $id): ?Account;
     public function save(Account $account): bool;
-    public function updateBalance(string $userUniqueId, float $newBalance): bool;
 }
 
 class AccountRepository implements AccountRepositoryInterface
 {
-    private \PDO $pdo;
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    public function findByUserUniqueId(string $userUniqueId): ?Account
+    public function findByUserId(string $userId): ?Account
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM accounts WHERE user_unique_id = :user_unique_id'
+            'SELECT * FROM accounts WHERE user_id = :user_id'
         );
-        $stmt->execute(['user_unique_id' => $userUniqueId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+        $stmt->execute(['user_id' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if (!$row) {
             return null;
         }
-        
+
         return new Account(
-            (int) $row['id'],
-            $row['user_unique_id'],
-            (float) $row['balance'],
-            new \DateTimeImmutable($row['created_at']),
-            new \DateTimeImmutable($row['updated_at'])
+            $row['id'],
+            $row['user_id'],
+            new DateTimeImmutable($row['created_at']),
+            new DateTimeImmutable($row['updated_at'])
+        );
+    }
+
+    public function findById(string $id): ?Account
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM accounts WHERE id = :id'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Account(
+            $row['id'],
+            $row['user_id'],
+            new DateTimeImmutable($row['created_at']),
+            new DateTimeImmutable($row['updated_at'])
         );
     }
 
     public function save(Account $account): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO accounts (user_unique_id, balance, created_at, updated_at) 
-             VALUES (:user_unique_id, :balance, :created_at, :updated_at)'
+            'INSERT INTO accounts (id, user_id, created_at, updated_at)
+             VALUES (:id, :user_id, :created_at, :updated_at)'
         );
-        
-        return $stmt->execute($account->toArray());
-    }
 
-    public function updateBalance(string $userUniqueId, float $newBalance): bool
-    {
-        $stmt = $this->pdo->prepare(
-            'UPDATE accounts SET balance = :balance, updated_at = :updated_at 
-             WHERE user_unique_id = :user_unique_id'
-        );
-        
-        return $stmt->execute([
-            'balance' => $newBalance,
-            'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-            'user_unique_id' => $userUniqueId
-        ]);
+        return $stmt->execute($account->toArray());
     }
 }
 ```
@@ -724,15 +722,15 @@ interface TransactionRepositoryInterface
 {
     public function findByIdempotencyKey(string $idempotencyKey): ?Transaction;
     public function save(Transaction $transaction): bool;
-    public function findByUserUniqueId(string $userUniqueId, int $limit = 50): array;
-    public function calculateBalance(string $userUniqueId): float;
+    public function findByAccountId(string $accountId, int $limit = 50): array;
+    public function calculateBalance(string $accountId): float;
 }
 
 class TransactionRepository implements TransactionRepositoryInterface
 {
-    private \PDO $pdo;
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
@@ -743,75 +741,75 @@ class TransactionRepository implements TransactionRepositoryInterface
             'SELECT * FROM transactions WHERE idempotency_key = :idempotency_key'
         );
         $stmt->execute(['idempotency_key' => $idempotencyKey]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if (!$row) {
             return null;
         }
-        
+
         return $this->rowToTransaction($row);
     }
 
     public function save(Transaction $transaction): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO transactions 
-             (idempotency_key, account_user_unique_id, counterpart_user_unique_id, type, amount, description, created_at) 
-             VALUES (:idempotency_key, :account_user_unique_id, :counterpart_user_unique_id, :type, :amount, :description, :created_at)'
+            'INSERT INTO transactions
+             (id, account_id, idempotency_key, type, amount, related_user_id, description, created_at)
+             VALUES (:id, :account_id, :idempotency_key, :type, :amount, :related_user_id, :description, :created_at)'
         );
-        
+
         return $stmt->execute($transaction->toArray());
     }
 
-    public function findByUserUniqueId(string $userUniqueId, int $limit = 50): array
+    public function findByAccountId(string $accountId, int $limit = 50): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM transactions 
-             WHERE account_user_unique_id = :account_user_unique_id 
+            'SELECT * FROM transactions
+             WHERE account_id = :account_id
              ORDER BY created_at DESC LIMIT :limit'
         );
-        $stmt->bindValue('account_user_unique_id', $userUniqueId);
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue('account_id', $accountId);
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         $transactions = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $transactions[] = $this->rowToTransaction($row);
         }
-        
+
         return $transactions;
     }
 
-    public function calculateBalance(string $userUniqueId): float
+    public function calculateBalance(string $accountId): float
     {
         $stmt = $this->pdo->prepare(
-            'SELECT type, amount FROM transactions WHERE account_user_unique_id = :account_user_unique_id'
+            'SELECT type, amount FROM transactions WHERE account_id = :account_id'
         );
-        $stmt->execute(['account_user_unique_id' => $userUniqueId]);
-        
+        $stmt->execute(['account_id' => $accountId]);
+
         $balance = 0.0;
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             if ($row['type'] === Transaction::TYPE_INCOME) {
                 $balance += (float) $row['amount'];
             } elseif ($row['type'] === Transaction::TYPE_SPEND) {
                 $balance -= (float) $row['amount'];
             }
         }
-        
+
         return $balance;
     }
 
     private function rowToTransaction(array $row): Transaction
     {
         return new Transaction(
-            (int) $row['id'],
+            $row['id'],
+            $row['account_id'],
             $row['idempotency_key'],
-            $row['account_user_unique_id'],
-            $row['counterpart_user_unique_id'],
             $row['type'],
             (float) $row['amount'],
+            $row['related_user_id'],
             $row['description'],
-            new \DateTimeImmutable($row['created_at'])
+            new DateTimeImmutable($row['created_at'])
         );
     }
 }
@@ -828,15 +826,16 @@ use PayTest\Models\Contact;
 interface ContactRepositoryInterface
 {
     public function save(Contact $contact): bool;
-    public function findByOwner(string $ownerUserUniqueId): array;
-    public function exists(string $ownerUserUniqueId, string $contactUserUniqueId): bool;
+    public function findByOwnerId(string $ownerId): array;
+    public function exists(string $ownerId, string $contactUserId): bool;
+    public function delete(string $ownerId, string $contactUserId): bool;
 }
 
 class ContactRepository implements ContactRepositoryInterface
 {
-    private \PDO $pdo;
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
@@ -844,46 +843,60 @@ class ContactRepository implements ContactRepositoryInterface
     public function save(Contact $contact): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO contacts (owner_user_unique_id, contact_user_unique_id, contact_name, created_at) 
-             VALUES (:owner_user_unique_id, :contact_user_unique_id, :contact_name, :created_at)'
+            'INSERT INTO contacts (id, owner_id, contact_user_id, created_at)
+             VALUES (:id, :owner_id, :contact_user_id, :created_at)'
         );
-        
+
         return $stmt->execute($contact->toArray());
     }
 
-    public function findByOwner(string $ownerUserUniqueId): array
+    public function findByOwnerId(string $ownerId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM contacts WHERE owner_user_unique_id = :owner_user_unique_id ORDER BY created_at DESC'
+            'SELECT c.*, u.name as contact_name
+             FROM contacts c
+             JOIN users u ON c.contact_user_id = u.id
+             WHERE c.owner_id = :owner_id ORDER BY c.created_at DESC'
         );
-        $stmt->execute(['owner_user_unique_id' => $ownerUserUniqueId]);
-        
+        $stmt->execute(['owner_id' => $ownerId]);
+
         $contacts = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $contacts[] = new Contact(
-                (int) $row['id'],
-                $row['owner_user_unique_id'],
-                $row['contact_user_unique_id'],
-                $row['contact_name'],
-                new \DateTimeImmutable($row['created_at'])
+                $row['id'],
+                $row['owner_id'],
+                $row['contact_user_id'],
+                new DateTimeImmutable($row['created_at'])
             );
         }
-        
+
         return $contacts;
     }
 
-    public function exists(string $ownerUserUniqueId, string $contactUserUniqueId): bool
+    public function exists(string $ownerId, string $contactUserId): bool
     {
         $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM contacts 
-             WHERE owner_user_unique_id = :owner AND contact_user_unique_id = :contact'
+            'SELECT 1 FROM contacts
+             WHERE owner_id = :owner_id AND contact_user_id = :contact_user_id'
         );
         $stmt->execute([
-            'owner' => $ownerUserUniqueId,
-            'contact' => $contactUserUniqueId
+            'owner_id' => $ownerId,
+            'contact_user_id' => $contactUserId
         ]);
-        
+
         return $stmt->fetch() !== false;
+    }
+
+    public function delete(string $ownerId, string $contactUserId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'DELETE FROM contacts WHERE owner_id = :owner_id AND contact_user_id = :contact_user_id'
+        );
+
+        return $stmt->execute([
+            'owner_id' => $ownerId,
+            'contact_user_id' => $contactUserId
+        ]);
     }
 }
 ```
@@ -900,15 +913,15 @@ interface SessionRepositoryInterface
 {
     public function findByToken(string $token): ?Session;
     public function save(Session $session): bool;
-    public function deleteByToken(string $token): bool;
+    public function updateStatus(string $token, string $status): bool;
     public function deleteExpired(): int;
 }
 
 class SessionRepository implements SessionRepositoryInterface
 {
-    private \PDO $pdo;
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
@@ -919,47 +932,56 @@ class SessionRepository implements SessionRepositoryInterface
             'SELECT * FROM sessions WHERE token = :token'
         );
         $stmt->execute(['token' => $token]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if (!$row) {
             return null;
         }
-        
+
         return new Session(
-            (int) $row['id'],
-            $row['user_unique_id'],
+            $row['id'],
+            $row['user_id'],
             $row['token'],
             $row['ip_address'],
             $row['user_agent'],
-            new \DateTimeImmutable($row['created_at']),
-            new \DateTimeImmutable($row['expires_at'])
+            $row['status'],
+            new DateTimeImmutable($row['created_at']),
+            new DateTimeImmutable($row['expires_at'])
         );
     }
 
     public function save(Session $session): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO sessions (user_unique_id, token, ip_address, user_agent, created_at, expires_at) 
-             VALUES (:user_unique_id, :token, :ip_address, :user_agent, :created_at, :expires_at)'
+            'INSERT INTO sessions (id, user_id, token, ip_address, user_agent, status, created_at, expires_at)
+             VALUES (:id, :user_id, :token, :ip_address, :user_agent, :status, :created_at, :expires_at)'
         );
-        
+
         return $stmt->execute($session->toArray());
     }
 
-    public function deleteByToken(string $token): bool
+    public function updateStatus(string $token, string $status): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE token = :token');
-        
-        return $stmt->execute(['token' => $token]);
+        $stmt = $this->pdo->prepare(
+            'UPDATE sessions SET status = :status WHERE token = :token'
+        );
+
+        return $stmt->execute([
+            'status' => $status,
+            'token' => $token
+        ]);
     }
 
     public function deleteExpired(): int
     {
         $stmt = $this->pdo->prepare(
-            'DELETE FROM sessions WHERE expires_at < :now'
+            'DELETE FROM sessions WHERE expires_at < :now OR status = :expired'
         );
-        $stmt->execute(['now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')]);
-        
+        $stmt->execute([
+            'now' => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'expired' => 'EXPIRED'
+        ]);
+
         return $stmt->rowCount();
     }
 }
@@ -977,67 +999,69 @@ USE paytest;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
-    unique_id VARCHAR(12) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    id VARCHAR(12) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_users_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounts table
+-- NOTA: El balance NO se almacena, se calcula dinámicamente desde transactions
 CREATE TABLE IF NOT EXISTS accounts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_unique_id VARCHAR(12) NOT NULL UNIQUE,
-    balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_unique_id) REFERENCES users(unique_id) ON DELETE CASCADE,
-    INDEX idx_accounts_user (user_unique_id)
+    id VARCHAR(16) PRIMARY KEY,  -- Formato: ACC_{nanoid}
+    user_id VARCHAR(12) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_accounts_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    idempotency_key VARCHAR(64) NOT NULL UNIQUE,
-    account_user_unique_id VARCHAR(12) NOT NULL,
-    counterpart_user_unique_id VARCHAR(12) NULL,
+    id VARCHAR(16) PRIMARY KEY,  -- Formato: TXN_{nanoid}
+    account_id VARCHAR(16) NOT NULL,
     type ENUM('INCOME', 'SPEND', 'REQUEST') NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
-    description VARCHAR(500) NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_user_unique_id) REFERENCES users(unique_id) ON DELETE CASCADE,
-    INDEX idx_transactions_user (account_user_unique_id),
+    idempotency_key VARCHAR(64) NOT NULL UNIQUE,
+    related_user_id VARCHAR(12) NULL,
+    description VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+    INDEX idx_transactions_account (account_id),
     INDEX idx_transactions_type (type),
     INDEX idx_transactions_idem (idempotency_key),
     INDEX idx_transactions_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Contacts table
+-- NOTA: contact_name se obtiene consultando users joined, NO se almacena
 CREATE TABLE IF NOT EXISTS contacts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    owner_user_unique_id VARCHAR(12) NOT NULL,
-    contact_user_unique_id VARCHAR(12) NOT NULL,
-    contact_name VARCHAR(255) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_user_unique_id) REFERENCES users(unique_id) ON DELETE CASCADE,
-    FOREIGN KEY (contact_user_unique_id) REFERENCES users(unique_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_contact (owner_user_unique_id, contact_user_unique_id),
-    INDEX idx_contacts_owner (owner_user_unique_id)
+    id VARCHAR(36) PRIMARY KEY,  -- UUID
+    owner_id VARCHAR(12) NOT NULL,
+    contact_user_id VARCHAR(12) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (contact_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_contact (owner_id, contact_user_id),
+    INDEX idx_contacts_owner (owner_id),
+    INDEX idx_contacts_contact (contact_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sessions table
 CREATE TABLE IF NOT EXISTS sessions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_unique_id VARCHAR(12) NOT NULL,
+    id VARCHAR(36) PRIMARY KEY,  -- UUID
+    user_id VARCHAR(12) NOT NULL,
     token VARCHAR(512) NOT NULL UNIQUE,
     ip_address VARCHAR(45) NULL,
-    user_agent VARCHAR(500) NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at DATETIME NOT NULL,
-    FOREIGN KEY (user_unique_id) REFERENCES users(unique_id) ON DELETE CASCADE,
+    user_agent VARCHAR(512) NULL,
+    status ENUM('ACTIVE', 'EXPIRED') NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_sessions_token (token),
-    INDEX idx_sessions_user (user_unique_id),
+    INDEX idx_sessions_user (user_id),
     INDEX idx_sessions_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1045,11 +1069,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS sala_codes (
     code VARCHAR(20) PRIMARY KEY,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    used_at DATETIME NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    used_at TIMESTAMP NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert some initial sala codes for testing
-INSERT INTO sala_codes (code) VALUES 
+INSERT INTO sala_codes (code) VALUES
     ('SALA001'), ('SALA002'), ('SALA003'), ('SALA004'), ('SALA005');
 ```

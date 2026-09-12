@@ -13,9 +13,9 @@ Authorization: Bearer <token>
 **Request:**
 ```json
 {
-  "to_user_unique_id": "A8LSIWVLGZ1Q",
+  "toUserId": "A8LSIWVLGZ1Q",
   "amount": 50.00,
-  "idempotency_key": "tx_abc123def456"
+  "idempotencyKey": "tx_abc123def456"
 }
 ```
 
@@ -25,16 +25,16 @@ Authorization: Bearer <token>
   "success": true,
   "data": {
     "transaction": {
-      "id": 1,
-      "idempotency_key": "tx_abc123def456",
-      "account_user_unique_id": "TFJOTJQEL4P3",
-      "counterpart_user_unique_id": "A8LSIWVLGZ1Q",
+      "id": "TXN_a1b2c3d4e5f6",
+      "accountId": "ACC_XK9mP2vL",
+      "idempotencyKey": "tx_abc123def456",
+      "relatedUserId": "A8LSIWVLGZ1Q",
       "type": "SPEND",
       "amount": 50.00,
       "description": "Transfer to A8LSIWVLGZ1Q",
-      "created_at": "2026-09-07T10:30:00Z"
+      "createdAt": "2026-09-07T10:30:00Z"
     },
-    "new_balance": 292.50
+    "newBalance": 292.50
   }
 }
 ```
@@ -64,14 +64,14 @@ Authorization: Bearer <token>
   "data": {
     "transactions": [
       {
-        "id": 2,
-        "idempotency_key": "initial_income_TFJOTJQEL4P3",
-        "account_user_unique_id": "TFJOTJQEL4P3",
-        "counterpart_user_unique_id": null,
+        "id": "TXN_a1b2c3d4e5f6",
+        "accountId": "ACC_XK9mP2vL",
+        "idempotencyKey": "initial_income_TFJOTJQEL4P3",
+        "relatedUserId": null,
         "type": "INCOME",
         "amount": 342.50,
         "description": "Saldo inicial de bienvenida",
-        "created_at": "2026-09-07T10:00:00Z"
+        "createdAt": "2026-09-07T10:00:00Z"
       }
     ],
     "count": 1
@@ -85,7 +85,32 @@ Authorization: Bearer <token>
 - `REQUEST`: Petición de pago (sin implementación de resolución en esta fase)
 
 ## Reglas de Negocio
-- **Idempotencia**: Si se envía la misma `idempotency_key`, retorna la transacción existente sin crear duplicados
+- **Idempotencia**: Si se envía la misma `idempotencyKey`, retorna la transacción existente sin crear duplicados
 - **No negativos**: El balance nunca puede ser negativo
 - **No infinitos/NaN**: Se validan valores numéricos antes de procesar
-- **Auto-ingreso**: El destinatario recibe automáticamente una transacción INCOME con key derivada de la original
+- **Transfer**: El transfer solo crea SPEND en el sender. El receiver recibe un REQUEST (pendiente approval). NO se crea INCOME automático para el destinatario.
+
+## Modelo de Datos
+
+### Transaction
+```typescript
+{
+  id: string                    // VARCHAR(16), "TXN_{nanoid}"
+  accountId: string             // VARCHAR(16), FK a Account
+  type: 'INCOME' | 'SPEND' | 'REQUEST'
+  amount: number               // DECIMAL(15,2)
+  idempotencyKey: string        // VARCHAR(64), único
+  relatedUserId: string | null // VARCHAR(12)
+  description: string | null   // VARCHAR(255)
+  createdAt: Date
+}
+```
+
+## Índices
+
+| Índice | Columna | Tipo |
+|--------|---------|------|
+| idx_transactions_account | accountId | INDEX |
+| idx_transactions_type | type | INDEX |
+| idx_transactions_idem | idempotencyKey | UNIQUE |
+| idx_transactions_created | createdAt | INDEX |
