@@ -1,3 +1,5 @@
 vendor/
 .env
 composer.phar
+.phpunit.cache/
+coverage/
