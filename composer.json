@@ -30,7 +30,9 @@
     },
     "scripts": {
         "test": "phpunit",
-        "coverage": "phpunit --coverage-text",
+        "test:unit": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration",
+        "coverage": "phpunit --coverage-text --coverage-html coverage",
         "start": "php -S localhost:8080 -t public"
     },
     "minimum-stability": "stable",
