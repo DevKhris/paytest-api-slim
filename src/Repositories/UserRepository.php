@@ -9,8 +9,10 @@ use PayTest\Models\User;
 interface UserRepositoryInterface
 {
     public function findById(string $id): ?User;
+    public function findByUniqueId(string $uniqueId): ?User;
     public function save(User $user): bool;
     public function existsById(string $id): bool;
+    public function existsByUniqueId(string $uniqueId): bool;
 }
 
 class UserRepository implements UserRepositoryInterface
@@ -53,6 +55,11 @@ class UserRepository implements UserRepositoryInterface
         return $stmt->execute($user->toArray());
     }
 
+    public function findByUniqueId(string $uniqueId): ?User
+    {
+        return $this->findById($uniqueId);
+    }
+
     public function existsById(string $id): bool
     {
         $stmt = $this->pdo->prepare(
@@ -61,5 +68,10 @@ class UserRepository implements UserRepositoryInterface
         $stmt->execute(['id' => $id]);
 
         return $stmt->fetch() !== false;
+    }
+
+    public function existsByUniqueId(string $uniqueId): bool
+    {
+        return $this->existsById($uniqueId);
     }
 }
