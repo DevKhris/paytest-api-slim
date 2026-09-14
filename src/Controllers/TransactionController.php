@@ -2,8 +2,6 @@
 
 namespace PayTest\Controllers;
 
-use PayTest\DTOs\Request\SendMoneyRequest;
-use PayTest\DTOs\Response\ApiResponse;
 use PayTest\Services\TransactionService;
 use PayTest\Services\AccountService;
 use PayTest\Exceptions\ValidationException;
@@ -20,77 +18,106 @@ class TransactionController
         private AccountService $accountService
     ) {}
 
-    public function sendMoney(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function transfer(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $fromUserUniqueId = $request->getAttribute('user_unique_id');
             $data = $request->getParsedBody();
 
-            $sendMoneyRequest = new SendMoneyRequest(
-                toUserUniqueId: $data['to_user_unique_id'] ?? '',
-                amount: (float) ($data['amount'] ?? 0),
-                idempotencyKey: $data['idempotency_key'] ?? ''
-            );
+            $toUserId = $data['toUserId'] ?? '';
+            $amount = (float) ($data['amount'] ?? 0);
+            $idempotencyKey = $data['idempotency_key'] ?? '';
 
-            if (empty($sendMoneyRequest->idempotencyKey)) {
-                return ApiResponse::error('idempotency_key is required', 400)->toArray();
+            if (empty($toUserId)) {
+                return $this->jsonResponse($response, 400, ['error' => 'toUserId is required']);
+            }
+            if ($amount <= 0) {
+                return $this->jsonResponse($response, 400, ['error' => 'Invalid amount']);
+            }
+            if (empty($idempotencyKey)) {
+                return $this->jsonResponse($response, 400, ['error' => 'idempotency_key is required']);
             }
 
             $transaction = $this->transactionService->sendMoney(
                 $fromUserUniqueId,
-                $sendMoneyRequest->toUserUniqueId,
-                $sendMoneyRequest->amount,
-                $sendMoneyRequest->idempotencyKey
+                $toUserId,
+                $amount,
+                $idempotencyKey
             );
 
             $newBalance = $this->accountService->getBalance($fromUserUniqueId);
 
             Logger::info('Money sent', [
                 'from' => $fromUserUniqueId,
-                'to' => $sendMoneyRequest->toUserUniqueId,
-                'amount' => $sendMoneyRequest->amount
+                'to' => $toUserId,
+                'amount' => $amount
             ]);
 
-            return ApiResponse::success([
-                'transaction' => $transaction->toArray(),
-                'new_balance' => $newBalance
-            ])->toArray();
+            return $this->jsonResponse($response, 200, [
+                'transaction_id' => $transaction->getId(),
+                'amount' => number_format($amount, 2, '.', ''),
+                'toUserId' => $toUserId,
+                'sender_balance_after' => number_format($newBalance, 2, '.', ''),
+                'recipient_balance_after' => '0.00',
+                'status' => 'completed'
+            ]);
 
         } catch (ValidationException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (NotFoundException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (InsufficientFundsException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (\Exception $e) {
             Logger::error('Send money failed', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Failed to send money', 500)->toArray();
+            return $this->jsonResponse($response, 500, ['error' => 'Failed to send money']);
         }
     }
 
-    public function getHistory(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function getTransactions(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $userUniqueId = $request->getAttribute('user_unique_id');
-            $limit = (int) ($request->getQueryParams()['limit'] ?? 50);
+            $queryParams = $request->getQueryParams();
+            $page = (int) ($queryParams['page'] ?? 1);
+            $perPage = (int) ($queryParams['per_page'] ?? 20);
 
-            $transactions = $this->transactionService->getTransactionHistory($userUniqueId, $limit);
+            $transactions = $this->transactionService->getTransactionHistory($userUniqueId, $perPage);
 
             $transactionsArray = array_map(
-                fn($tx) => $tx->toArray(),
+                fn($tx) => [
+                    'id' => $tx->getId(),
+                    'account_id' => $tx->getAccountId(),
+                    'type' => $tx->getType(),
+                    'amount' => number_format($tx->getAmount(), 2, '.', ''),
+                    'idempotency_key' => $tx->getIdempotencyKey(),
+                    'related_user_id' => $tx->getRelatedUserId(),
+                    'description' => $tx->getDescription(),
+                    'created_at' => $tx->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
+                ],
                 $transactions
             );
 
-            return ApiResponse::success([
+            return $this->jsonResponse($response, 200, [
                 'transactions' => $transactionsArray,
-                'count' => count($transactionsArray)
-            ])->toArray();
+                'total' => count($transactionsArray),
+                'page' => $page,
+                'per_page' => $perPage
+            ]);
 
         } catch (NotFoundException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (\Exception $e) {
             Logger::error('Failed to get transaction history', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Failed to retrieve transaction history', 500)->toArray();
+            return $this->jsonResponse($response, 500, ['error' => 'Failed to retrieve transaction history']);
         }
+    }
+
+    private function jsonResponse(ResponseInterface $response, int $status, array $data): ResponseInterface
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response
+            ->withStatus($status)
+            ->withHeader('Content-Type', 'application/json');
     }
 }

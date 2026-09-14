@@ -4,8 +4,6 @@ namespace PayTest\Controllers;
 
 use PayTest\DTOs\Request\RegisterRequest;
 use PayTest\DTOs\Request\LoginRequest;
-use PayTest\DTOs\Response\ApiResponse;
-use PayTest\DTOs\Response\AuthResponse;
 use PayTest\Services\UserService;
 use PayTest\Services\SessionService;
 use PayTest\Services\SalaService;
@@ -23,23 +21,50 @@ class AuthController
         private SalaService $salaService
     ) {}
 
+    public function validateRoomCode(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        try {
+            $data = $request->getParsedBody();
+            $roomCode = $data['room_code'] ?? '';
+
+            if (strlen($roomCode) < 4 || strlen($roomCode) > 10) {
+                return $this->jsonResponse($response, 400, ['error' => 'Invalid room code']);
+            }
+
+            $isValid = $this->salaService->validateSalaCode($roomCode);
+
+            if (!$isValid) {
+                return $this->jsonResponse($response, 400, ['error' => 'Invalid room code']);
+            }
+
+            return $this->jsonResponse($response, 200, [
+                'message' => 'Room code valid',
+                'room_code' => $roomCode
+            ]);
+
+        } catch (\Exception $e) {
+            Logger::error('Room code validation failed', ['error' => $e->getMessage()]);
+            return $this->jsonResponse($response, 400, ['error' => $e->getMessage()]);
+        }
+    }
+
     public function register(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $data = $request->getParsedBody();
             $registerRequest = RegisterRequest::fromArray($data);
 
-            if (!$this->salaService->validateSalaCode($registerRequest->salaCode)) {
-                return ApiResponse::error('Invalid or already used sala code', 400)->toArray();
+            if (!$this->salaService->validateSalaCode($registerRequest->roomCode)) {
+                return $this->jsonResponse($response, 400, ['error' => 'Invalid or already used room code']);
             }
 
             $user = $this->userService->register(
                 $registerRequest->name,
                 $registerRequest->password,
-                $registerRequest->salaCode
+                $registerRequest->roomCode
             );
 
-            $this->salaService->markSalaCodeAsUsed($registerRequest->salaCode);
+            $this->salaService->markSalaCodeAsUsed($registerRequest->roomCode);
 
             $sessionData = $this->sessionService->createSession(
                 $user->getId(),
@@ -47,25 +72,27 @@ class AuthController
                 $request->getHeaderLine('User-Agent')
             );
 
-            $authResponse = new AuthResponse(
-                $sessionData['token'],
-                $sessionData['token_type'],
-                $sessionData['expires_in'],
-                [
-                    'unique_id' => $user->getId(),
-                    'name' => $user->getName()
-                ]
-            );
-
             Logger::info('User registered and logged in', ['unique_id' => $user->getId()]);
 
-            return ApiResponse::success($authResponse->toArray())->toArray();
+            return $this->jsonResponse($response, 201, [
+                'message' => 'User registered successfully',
+                'user' => [
+                    'userId' => $user->getId(),
+                    'name' => $user->getName(),
+                    'created_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                ],
+                'token' => [
+                    'access_token' => $sessionData['token'],
+                    'token_type' => 'Bearer',
+                    'expires_in' => $sessionData['expires_in']
+                ]
+            ]);
 
         } catch (ValidationException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (\Exception $e) {
             Logger::error('Registration failed', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Registration failed', 500)->toArray();
+            return $this->jsonResponse($response, 500, ['error' => 'Registration failed']);
         }
     }
 
@@ -75,46 +102,65 @@ class AuthController
             $data = $request->getParsedBody();
             $loginRequest = LoginRequest::fromArray($data);
 
-            if (!$this->userService->validateCredentials($loginRequest->uniqueId, $loginRequest->password)) {
-                return ApiResponse::error('Invalid credentials', 401)->toArray();
+            if (!$this->userService->validateCredentials($loginRequest->userId, $loginRequest->password)) {
+                return $this->jsonResponse($response, 401, ['error' => 'Invalid credentials']);
             }
 
             $sessionData = $this->sessionService->createSession(
-                $loginRequest->uniqueId,
+                $loginRequest->userId,
                 $request->getServerParams()['REMOTE_ADDR'] ?? null,
                 $request->getHeaderLine('User-Agent')
             );
 
-            $user = $this->userService->findByUniqueIdOrFail($loginRequest->uniqueId);
+            $user = $this->userService->findByUniqueIdOrFail($loginRequest->userId);
 
-            $authResponse = new AuthResponse(
-                $sessionData['token'],
-                $sessionData['token_type'],
-                $sessionData['expires_in'],
-                [
-                    'unique_id' => $user->getId(),
-                    'name' => $user->getName()
+            Logger::info('User logged in', ['unique_id' => $loginRequest->userId]);
+
+            return $this->jsonResponse($response, 200, [
+                'message' => 'Login successful',
+                'user' => [
+                    'userId' => $user->getId(),
+                    'name' => $user->getName(),
+                    'created_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                ],
+                'token' => [
+                    'access_token' => $sessionData['token'],
+                    'token_type' => 'Bearer',
+                    'expires_in' => $sessionData['expires_in']
                 ]
-            );
-
-            Logger::info('User logged in', ['unique_id' => $loginRequest->uniqueId]);
-
-            return ApiResponse::success($authResponse->toArray())->toArray();
+            ]);
 
         } catch (UnauthorizedException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (\Exception $e) {
             Logger::error('Login failed', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Login failed', 500)->toArray();
+            return $this->jsonResponse($response, 500, ['error' => 'Login failed']);
         }
     }
 
-    public function validateSala(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function logout(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $code = $request->getAttribute('code');
+        try {
+            $token = $request->getAttribute('token');
+            $this->sessionService->invalidateSession($token);
 
-        $isValid = $this->salaService->validateSalaCode($code);
+            Logger::info('User logged out', ['token_prefix' => substr($token, 0, 10) . '...']);
 
-        return ApiResponse::success(['valid' => $isValid])->toArray();
+            return $this->jsonResponse($response, 200, [
+                'message' => 'Logout successful'
+            ]);
+
+        } catch (\Exception $e) {
+            Logger::error('Logout failed', ['error' => $e->getMessage()]);
+            return $this->jsonResponse($response, 500, ['error' => 'Logout failed']);
+        }
+    }
+
+    private function jsonResponse(ResponseInterface $response, int $status, array $data): ResponseInterface
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response
+            ->withStatus($status)
+            ->withHeader('Content-Type', 'application/json');
     }
 }

@@ -7,7 +7,7 @@ class RegisterRequest
     public function __construct(
         public readonly string $name,
         public readonly string $password,
-        public readonly string $salaCode
+        public readonly string $roomCode
     ) {}
 
     public static function fromArray(array $data): self
@@ -15,7 +15,7 @@ class RegisterRequest
         return new self(
             name: $data['name'] ?? '',
             password: $data['password'] ?? '',
-            salaCode: $data['sala_code'] ?? ''
+            roomCode: $data['room_code'] ?? ''
         );
     }
 }

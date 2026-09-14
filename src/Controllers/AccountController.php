@@ -2,7 +2,6 @@
 
 namespace PayTest\Controllers;
 
-use PayTest\DTOs\Response\ApiResponse;
 use PayTest\Services\AccountService;
 use PayTest\Exceptions\NotFoundException;
 use PayTest\Config\Logger;
@@ -19,21 +18,28 @@ class AccountController
     {
         try {
             $userUniqueId = $request->getAttribute('user_unique_id');
-
             $balance = $this->accountService->getBalance($userUniqueId);
 
             Logger::info('Balance retrieved', ['user_unique_id' => $userUniqueId, 'balance' => $balance]);
 
-            return ApiResponse::success([
-                'user_unique_id' => $userUniqueId,
-                'balance' => $balance
-            ])->toArray();
+            return $this->jsonResponse($response, 200, [
+                'balance' => number_format($balance, 2, '.', ''),
+                'currency' => 'USD'
+            ]);
 
         } catch (NotFoundException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), ['error' => $e->getMessage()]);
         } catch (\Exception $e) {
             Logger::error('Failed to get balance', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Failed to retrieve balance', 500)->toArray();
+            return $this->jsonResponse($response, 500, ['error' => 'Failed to retrieve balance']);
         }
+    }
+
+    private function jsonResponse(ResponseInterface $response, int $status, array $data): ResponseInterface
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response
+            ->withStatus($status)
+            ->withHeader('Content-Type', 'application/json');
     }
 }
