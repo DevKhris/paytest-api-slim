@@ -10,7 +10,7 @@ Registra un nuevo usuario con cuenta y saldo inicial.
 {
   "name": "Juan Pérez",
   "password": "secret123",
-  "sala_code": "SALA001"
+  "room_code": "TRAINING01"
 }
 ```
 

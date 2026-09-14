@@ -44,9 +44,9 @@ class DatabaseHelper
         }
     }
 
-    public static function seedSalaCodes(\PDO $pdo, array $codes): void
+    public static function seedRoomCodes(\PDO $pdo, array $codes): void
     {
-        $stmt = $pdo->prepare('INSERT INTO sala_codes (code) VALUES (:code)');
+        $stmt = $pdo->prepare('INSERT INTO room_codes (code) VALUES (:code)');
         foreach ($codes as $code) {
             $stmt->execute(['code' => $code]);
         }

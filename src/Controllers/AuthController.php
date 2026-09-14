@@ -6,7 +6,7 @@ use PayTest\DTOs\Request\RegisterRequest;
 use PayTest\DTOs\Request\LoginRequest;
 use PayTest\Services\UserService;
 use PayTest\Services\SessionService;
-use PayTest\Services\SalaService;
+use PayTest\Services\RoomCodeService;
 use PayTest\Exceptions\ValidationException;
 use PayTest\Exceptions\UnauthorizedException;
 use PayTest\Config\Logger;
@@ -18,7 +18,7 @@ class AuthController
     public function __construct(
         private UserService $userService,
         private SessionService $sessionService,
-        private SalaService $salaService
+        private RoomCodeService $roomCodeService
     ) {}
 
     public function validateRoomCode(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -31,7 +31,7 @@ class AuthController
                 return $this->jsonResponse($response, 400, ['error' => 'Invalid room code']);
             }
 
-            $isValid = $this->salaService->validateSalaCode($roomCode);
+            $isValid = $this->roomCodeService->validateRoomCode($roomCode);
 
             if (!$isValid) {
                 return $this->jsonResponse($response, 400, ['error' => 'Invalid room code']);
@@ -54,7 +54,7 @@ class AuthController
             $data = $request->getParsedBody();
             $registerRequest = RegisterRequest::fromArray($data);
 
-            if (!$this->salaService->validateSalaCode($registerRequest->roomCode)) {
+            if (!$this->roomCodeService->validateRoomCode($registerRequest->roomCode)) {
                 return $this->jsonResponse($response, 400, ['error' => 'Invalid or already used room code']);
             }
 
@@ -64,7 +64,7 @@ class AuthController
                 $registerRequest->roomCode
             );
 
-            $this->salaService->markSalaCodeAsUsed($registerRequest->roomCode);
+            $this->roomCodeService->markRoomCodeAsUsed($registerRequest->roomCode);
 
             $sessionData = $this->sessionService->createSession(
                 $user->getId(),

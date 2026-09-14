@@ -19,9 +19,9 @@ class UserService
         private AccountService $accountService
     ) {}
 
-    public function register(string $name, string $password, string $salaCode): User
+    public function register(string $name, string $password, string $roomCode): User
     {
-        Logger::info('Attempting user registration', ['name' => $name, 'sala_code' => $salaCode]);
+        Logger::info('Attempting user registration', ['name' => $name, 'room_code' => $roomCode]);
 
         if (strlen($password) < 6) {
             throw new ValidationException('Password must be at least 6 characters');

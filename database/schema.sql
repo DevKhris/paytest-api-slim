@@ -71,14 +71,10 @@ CREATE TABLE IF NOT EXISTS sessions (
     INDEX idx_sessions_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Sala codes (for waiting room validation)
-CREATE TABLE IF NOT EXISTS sala_codes (
+-- Room codes (for waiting room validation)
+CREATE TABLE IF NOT EXISTS room_codes (
     code VARCHAR(20) PRIMARY KEY,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     used_at TIMESTAMP NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Insert some initial sala codes for testing
-INSERT INTO sala_codes (code) VALUES
-    ('SALA001'), ('SALA002'), ('SALA003'), ('SALA004'), ('SALA005');

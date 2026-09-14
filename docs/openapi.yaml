@@ -375,7 +375,7 @@ components:
       required:
         - name
         - password
-        - sala_code
+        - room_code
       properties:
         name:
           type: string
@@ -385,17 +385,17 @@ components:
           type: string
           minLength: 6
           example: "secret123"
-        sala_code:
+        room_code:
           type: string
-          example: "SALA001"
+          example: "TRAINING01"
 
     LoginRequest:
       type: object
       required:
-        - unique_id
+        - userId
         - password
       properties:
-        unique_id:
+        userId:
           type: string
           example: "TFJOTJQEL4P3"
         password:

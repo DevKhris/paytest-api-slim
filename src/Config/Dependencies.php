@@ -16,7 +16,7 @@ use PayTest\Services\AccountService;
 use PayTest\Services\TransactionService;
 use PayTest\Services\ContactService;
 use PayTest\Services\SessionService;
-use PayTest\Services\SalaService;
+use PayTest\Services\RoomCodeService;
 use PayTest\Controllers\AuthController;
 use PayTest\Controllers\AccountController;
 use PayTest\Controllers\TransactionController;
@@ -58,7 +58,7 @@ return [
     TransactionService::class => \DI\autowire(),
     ContactService::class => \DI\autowire(),
     SessionService::class => \DI\autowire(),
-    SalaService::class => \DI\autowire(),
+    RoomCodeService::class => \DI\autowire(),
 
     // Controllers
     AuthController::class => \DI\autowire(),
