@@ -11,6 +11,12 @@ use Slim\App;
 return function (App $app) {
     $app->add(RequestLoggerMiddleware::class);
 
+    // Health check
+    $app->get('/health', function ($request, $response) {
+        $response->getBody()->write(json_encode(['status' => 'ok']));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     // Public routes
     $app->post('/auth/room-code', [AuthController::class, 'validateRoomCode']);
     $app->post('/auth/register', [AuthController::class, 'register']);
