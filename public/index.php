@@ -2,6 +2,7 @@
 
 use DI\ContainerBuilder;
 use PayTest\Exceptions\AppErrorHandler;
+use PayTest\Middleware\CorsMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -11,6 +12,7 @@ $container = $builder->build();
 
 $app = \Slim\Factory\AppFactory::createFromContainer($container);
 $app->addRoutingMiddleware();
+$app->add(new CorsMiddleware());
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $errorMiddleware->setDefaultErrorHandler(

@@ -33,7 +33,7 @@
         "test:unit": "phpunit --testsuite Unit",
         "test:integration": "phpunit --testsuite Integration",
         "coverage": "phpunit --coverage-text --coverage-html coverage",
-        "start": "php -S localhost:8080 -t public"
+        "start": "php -S 127.0.0.1:5003 -t public"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
