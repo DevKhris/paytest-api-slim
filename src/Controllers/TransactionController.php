@@ -32,11 +32,17 @@ class TransactionController
             if (empty($toUserId)) {
                 return $this->jsonResponse($response, 400, ['error' => 'toUserId is required']);
             }
+            if (strlen($toUserId) !== 12) {
+                return $this->jsonResponse($response, 400, ['error' => 'toUserId must be exactly 12 characters']);
+            }
             if ($amount <= 0) {
                 return $this->jsonResponse($response, 400, ['error' => 'Invalid amount']);
             }
             if (empty($idempotencyKey)) {
                 return $this->jsonResponse($response, 400, ['error' => 'idempotency_key is required']);
+            }
+            if (strlen($idempotencyKey) < 16 || strlen($idempotencyKey) > 64) {
+                return $this->jsonResponse($response, 400, ['error' => 'idempotency_key must be between 16 and 64 characters']);
             }
 
             $transaction = $this->transactionService->sendMoney(
