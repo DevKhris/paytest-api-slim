@@ -27,7 +27,7 @@ class SessionService
     ): array {
         Logger::info('Creating session', ['user_unique_id' => $userUniqueId]);
 
-        $expiresIn = (int) ($_ENV['JWT_EXPIRES_IN'] ?? 3600);
+        $expiresIn = (int) ($_ENV['JWT_EXPIRES_IN'] ?? 86400);
         $expiresAt = (new \DateTimeImmutable())->modify("+{$expiresIn} seconds");
         
         $payload = [
