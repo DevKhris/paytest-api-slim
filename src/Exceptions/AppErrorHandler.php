@@ -6,9 +6,9 @@ use PayTest\Config\Logger;
 use PayTest\DTOs\Response\ApiResponse;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Slim\ErrorHandlers\SlimErrorHandler;
+use Slim\Handlers\ErrorHandler;
 
-class AppErrorHandler extends SlimErrorHandler
+class AppErrorHandler extends ErrorHandler
 {
     protected function respond(iterable $response): ResponseInterface
     {
