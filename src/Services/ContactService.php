@@ -58,4 +58,23 @@ class ContactService
     {
         return $this->contactRepository->findByOwnerId($ownerUserUniqueId);
     }
+
+    public function removeContact(string $ownerUserUniqueId, string $contactUserId): void
+    {
+        Logger::info('Removing contact', [
+            'owner' => $ownerUserUniqueId,
+            'contact' => $contactUserId
+        ]);
+
+        if (!$this->contactRepository->exists($ownerUserUniqueId, $contactUserId)) {
+            throw new NotFoundException('Contact not found');
+        }
+
+        $this->contactRepository->delete($ownerUserUniqueId, $contactUserId);
+
+        Logger::info('Contact removed successfully', [
+            'owner' => $ownerUserUniqueId,
+            'contact' => $contactUserId
+        ]);
+    }
 }
