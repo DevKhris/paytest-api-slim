@@ -10,7 +10,7 @@ use Slim\Handlers\ErrorHandler;
 
 class AppErrorHandler extends ErrorHandler
 {
-    protected function respond(iterable $response): ResponseInterface
+    protected function respond(): ResponseInterface
     {
         $exception = $this->exception;
 
