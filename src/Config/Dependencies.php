@@ -35,19 +35,35 @@ return [
 
     // PDO
     \PDO::class => function () {
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['DB_PORT'] ?? 5432;
-        $database = $_ENV['DB_DATABASE'] ?? 'paytest';
-        $username = $_ENV['DB_USERNAME'] ?? 'postgres';
-        $password = $_ENV['DB_PASSWORD'] ?? '';
+        $dsn = $_ENV['DATABASE_URL'] ?? null;
 
-        $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
+        if ($dsn) {
+            if (strpos($dsn, '?') === false) {
+                $dsn .= '?sslmode=require';
+            } elseif (strpos($dsn, 'sslmode=') === false) {
+                $dsn .= '&sslmode=require';
+            }
 
-        $pdo = new \PDO($dsn, $username, $password, [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-            \PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
+            $pdo = new \PDO($dsn, null, null, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+        } else {
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $port = $_ENV['DB_PORT'] ?? 5432;
+            $database = $_ENV['DB_DATABASE'] ?? 'paytest';
+            $username = $_ENV['DB_USERNAME'] ?? 'postgres';
+            $password = $_ENV['DB_PASSWORD'] ?? '';
+
+            $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
+
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+        }
 
         return $pdo;
     },
