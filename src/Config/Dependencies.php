@@ -36,12 +36,12 @@ return [
     // PDO
     \PDO::class => function () {
         $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['DB_PORT'] ?? 3306;
+        $port = $_ENV['DB_PORT'] ?? 5432;
         $database = $_ENV['DB_DATABASE'] ?? 'paytest';
-        $username = $_ENV['DB_USERNAME'] ?? 'root';
+        $username = $_ENV['DB_USERNAME'] ?? 'postgres';
         $password = $_ENV['DB_PASSWORD'] ?? '';
 
-        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+        $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
 
         $pdo = new \PDO($dsn, $username, $password, [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
