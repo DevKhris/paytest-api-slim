@@ -20,12 +20,7 @@ class AppErrorHandler extends SlimErrorHandler
                 'status_code' => $exception->getStatusCode()
             ]);
 
-            $apiResponse = ApiResponse::error(
-                $exception->getMessage(),
-                $exception->getStatusCode()
-            );
-
-            $body = json_encode($apiResponse->toArray());
+            $body = json_encode(['error' => $exception->getMessage()]);
             $this->response->getBody()->write($body);
 
             return $this->response
@@ -38,12 +33,8 @@ class AppErrorHandler extends SlimErrorHandler
             'trace' => $exception->getTraceAsString()
         ]);
 
-        $apiResponse = ApiResponse::error(
-            $_ENV['APP_DEBUG'] ? $exception->getMessage() : 'Internal server error',
-            500
-        );
-
-        $body = json_encode($apiResponse->toArray());
+        $message = $_ENV['APP_DEBUG'] ? $exception->getMessage() : 'Internal server error';
+        $body = json_encode(['error' => $message]);
         $this->response->getBody()->write($body);
 
         return $this->response

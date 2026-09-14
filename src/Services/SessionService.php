@@ -103,7 +103,7 @@ class SessionService
     {
         Logger::info('Invalidating session', ['token_prefix' => substr($token, 0, 10) . '...']);
         
-        return $this->sessionRepository->updateStatus($token, 'INVALIDATED');
+        return $this->sessionRepository->updateStatus($token, 'EXPIRED');
     }
 
     public function cleanupExpiredSessions(): int
