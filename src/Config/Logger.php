@@ -34,11 +34,15 @@ class Logger
         $projectRoot = dirname(__DIR__, 2);
         $logDir = $projectRoot . '/logs';
 
-        if (!is_dir($logDir)) {
-            @mkdir($logDir, 0755, true);
+        if (is_dir($logDir) && is_writable($logDir)) {
+            return $logDir . '/app.log';
         }
 
-        return $logDir . '/app.log';
+        if (@mkdir($logDir, 0755, true) && is_writable($logDir)) {
+            return $logDir . '/app.log';
+        }
+
+        return sys_get_temp_dir() . '/paytest-app.log';
     }
 
     public static function info(string $message, array $context = []): void
