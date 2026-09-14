@@ -7,6 +7,7 @@ use PayTest\Repositories\UserRepositoryInterface;
 use PayTest\Exceptions\ValidationException;
 use PayTest\Exceptions\NotFoundException;
 use PayTest\Config\Logger;
+use PayTest\Utils\DateFormat;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -27,6 +28,10 @@ class ContactController
 
             if (empty($contactUserId)) {
                 return $this->jsonResponse($response, 400, ['error' => 'contactUserId is required']);
+            }
+
+            if (strlen($contactUserId) !== 12) {
+                return $this->jsonResponse($response, 400, ['error' => 'contactUserId must be exactly 12 characters']);
             }
 
             if ($ownerUserUniqueId === $contactUserId) {
@@ -50,7 +55,7 @@ class ContactController
                     'id' => $contactUserId,
                     'name' => $contactUser?->getName() ?? ''
                 ],
-                'created_at' => $contact->getCreatedAt()?->format('Y-m-d\TH:i:s\Z') ?? (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                'created_at' => DateFormat::toIso8601($contact->getCreatedAt())
             ]);
 
         } catch (ValidationException $e) {
@@ -81,7 +86,7 @@ class ContactController
                             'id' => $contact->getContactUserId(),
                             'name' => $contactUser?->getName() ?? ''
                         ],
-                        'created_at' => $contact->getCreatedAt()?->format('Y-m-d\TH:i:s\Z') ?? (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                        'created_at' => DateFormat::toIso8601($contact->getCreatedAt())
                     ];
                 },
                 $contacts

@@ -8,6 +8,7 @@ use PayTest\Exceptions\ValidationException;
 use PayTest\Exceptions\NotFoundException;
 use PayTest\Exceptions\InsufficientFundsException;
 use PayTest\Config\Logger;
+use PayTest\Utils\DateFormat;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -43,6 +44,9 @@ class TransactionController
             }
             if (strlen($idempotencyKey) < 16 || strlen($idempotencyKey) > 64) {
                 return $this->jsonResponse($response, 400, ['error' => 'idempotency_key must be between 16 and 64 characters']);
+            }
+            if ($description !== null && strlen($description) > 255) {
+                return $this->jsonResponse($response, 400, ['error' => 'description must be at most 255 characters']);
             }
 
             $transaction = $this->transactionService->sendMoney(
@@ -103,7 +107,7 @@ class TransactionController
                     'idempotency_key' => $tx->getIdempotencyKey(),
                     'related_user_id' => $tx->getRelatedUserId(),
                     'description' => $tx->getDescription(),
-                    'created_at' => $tx->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
+                    'created_at' => DateFormat::toIso8601($tx->getCreatedAt())
                 ],
                 $transactions
             );

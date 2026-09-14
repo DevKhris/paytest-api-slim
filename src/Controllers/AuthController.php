@@ -10,6 +10,7 @@ use PayTest\Services\RoomCodeService;
 use PayTest\Exceptions\ValidationException;
 use PayTest\Exceptions\UnauthorizedException;
 use PayTest\Config\Logger;
+use PayTest\Utils\DateFormat;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -79,7 +80,7 @@ class AuthController
                 'user' => [
                     'userId' => $user->getId(),
                     'name' => $user->getName(),
-                    'created_at' => $user->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
+                    'created_at' => DateFormat::toIso8601($user->getCreatedAt())
                 ],
                 'token' => [
                     'access_token' => $sessionData['token'],
@@ -121,7 +122,7 @@ class AuthController
                 'user' => [
                     'userId' => $user->getId(),
                     'name' => $user->getName(),
-                    'created_at' => $user->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
+                    'created_at' => DateFormat::toIso8601($user->getCreatedAt())
                 ],
                 'token' => [
                     'access_token' => $sessionData['token'],
