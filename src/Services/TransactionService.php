@@ -25,7 +25,8 @@ class TransactionService
         string $fromUserUniqueId,
         string $toUserUniqueId,
         float $amount,
-        string $idempotencyKey
+        string $idempotencyKey,
+        ?string $description = null
     ): Transaction {
         Logger::info('Attempting to send money', [
             'from' => $fromUserUniqueId,
@@ -60,7 +61,7 @@ class TransactionService
             Transaction::TYPE_SPEND,
             $amount,
             $toUserUniqueId,
-            "Transfer to {$toUserUniqueId}"
+            $description ?: "Transfer to {$toUserUniqueId}"
         );
         
         $this->transactionRepository->save($spendTransaction);
@@ -76,7 +77,7 @@ class TransactionService
                 Transaction::TYPE_INCOME,
                 $amount,
                 $fromUserUniqueId,
-                "Transfer from {$fromUserUniqueId}"
+                $description ?: "Transfer from {$fromUserUniqueId}"
             );
             
             $this->transactionRepository->save($incomeTransaction);
@@ -124,7 +125,7 @@ class TransactionService
         }
     }
 
-    public function getTransactionHistory(string $userUniqueId, int $limit = 50): array
+    public function getTransactionHistory(string $userUniqueId, int $limit = 50, int $page = 1): array
     {
         if (!$this->userRepository->existsByUniqueId($userUniqueId)) {
             throw new NotFoundException('User not found');
@@ -133,9 +134,13 @@ class TransactionService
         $account = $this->accountRepository->findByUserId($userUniqueId);
         
         if ($account === null) {
-            return [];
+            return ['transactions' => [], 'total' => 0];
         }
 
-        return $this->transactionRepository->findByAccountId($account->getId(), $limit);
+        $offset = ($page - 1) * $limit;
+        $transactions = $this->transactionRepository->findByAccountId($account->getId(), $limit, $offset);
+        $total = $this->transactionRepository->countByAccountId($account->getId());
+
+        return ['transactions' => $transactions, 'total' => $total];
     }
 }

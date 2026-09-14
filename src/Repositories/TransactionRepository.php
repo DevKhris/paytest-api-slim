@@ -10,7 +10,8 @@ interface TransactionRepositoryInterface
 {
     public function findByIdempotencyKey(string $idempotencyKey): ?Transaction;
     public function save(Transaction $transaction): bool;
-    public function findByAccountId(string $accountId, int $limit = 50): array;
+    public function findByAccountId(string $accountId, int $limit = 50, int $offset = 0): array;
+    public function countByAccountId(string $accountId): int;
     public function calculateBalance(string $accountId): float;
 }
 
@@ -49,15 +50,16 @@ class TransactionRepository implements TransactionRepositoryInterface
         return $stmt->execute($transaction->toArray());
     }
 
-    public function findByAccountId(string $accountId, int $limit = 50): array
+    public function findByAccountId(string $accountId, int $limit = 50, int $offset = 0): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT * FROM transactions
              WHERE account_id = :account_id
-             ORDER BY created_at DESC LIMIT :limit'
+             ORDER BY created_at DESC LIMIT :limit OFFSET :offset'
         );
         $stmt->bindValue('account_id', $accountId);
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         $transactions = [];
@@ -66,6 +68,16 @@ class TransactionRepository implements TransactionRepositoryInterface
         }
 
         return $transactions;
+    }
+
+    public function countByAccountId(string $accountId): int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) as total FROM transactions WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($row['total'] ?? 0);
     }
 
     public function calculateBalance(string $accountId): float

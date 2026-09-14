@@ -27,6 +27,7 @@ class TransactionController
             $toUserId = $data['toUserId'] ?? '';
             $amount = (float) ($data['amount'] ?? 0);
             $idempotencyKey = $data['idempotency_key'] ?? '';
+            $description = $data['description'] ?? null;
 
             if (empty($toUserId)) {
                 return $this->jsonResponse($response, 400, ['error' => 'toUserId is required']);
@@ -42,10 +43,12 @@ class TransactionController
                 $fromUserUniqueId,
                 $toUserId,
                 $amount,
-                $idempotencyKey
+                $idempotencyKey,
+                $description
             );
 
             $newBalance = $this->accountService->getBalance($fromUserUniqueId);
+            $recipientBalance = $this->accountService->getBalance($toUserId);
 
             Logger::info('Money sent', [
                 'from' => $fromUserUniqueId,
@@ -58,7 +61,7 @@ class TransactionController
                 'amount' => number_format($amount, 2, '.', ''),
                 'toUserId' => $toUserId,
                 'sender_balance_after' => number_format($newBalance, 2, '.', ''),
-                'recipient_balance_after' => '0.00',
+                'recipient_balance_after' => number_format($recipientBalance, 2, '.', ''),
                 'status' => 'completed'
             ]);
 
@@ -82,7 +85,8 @@ class TransactionController
             $page = (int) ($queryParams['page'] ?? 1);
             $perPage = (int) ($queryParams['per_page'] ?? 20);
 
-            $transactions = $this->transactionService->getTransactionHistory($userUniqueId, $perPage);
+            $result = $this->transactionService->getTransactionHistory($userUniqueId, $perPage, $page);
+            $transactions = $result['transactions'];
 
             $transactionsArray = array_map(
                 fn($tx) => [
@@ -100,7 +104,7 @@ class TransactionController
 
             return $this->jsonResponse($response, 200, [
                 'transactions' => $transactionsArray,
-                'total' => count($transactionsArray),
+                'total' => $result['total'],
                 'page' => $page,
                 'per_page' => $perPage
             ]);
