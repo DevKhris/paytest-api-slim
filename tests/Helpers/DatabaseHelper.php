@@ -22,16 +22,12 @@ class DatabaseHelper
     {
         $schema = file_get_contents(__DIR__ . '/../../database/schema.sql');
 
-        $schema = str_replace('mysql:', 'sqlite:', $schema);
-        $schema = preg_replace('/ENGINE=InnoDB.*?;/s', '', $schema);
-        $schema = preg_replace('/FOREIGN KEY.*?;/s', '', $schema);
-        $schema = preg_replace('/INDEX\s+\w+\s*\(.*?\)/s', '', $schema);
-        $schema = preg_replace('/UNIQUE KEY\s+\w+\s*\(.*?\)/s', '', $schema);
-        $schema = preg_replace('/ON UPDATE CURRENT_TIMESTAMP/s', '', $schema);
-        $schema = preg_replace('/DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci/s', '', $schema);
-        $schema = preg_replace('/CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci/s', '', $schema);
+        // Convert PostgreSQL syntax to SQLite-compatible syntax
+        $schema = preg_replace('/CHECK\s*\(.*?\)/s', '', $schema);
+        $schema = preg_replace('/REFERENCES\s+\w+\(.*?\)\s*(ON DELETE CASCADE)?/s', '', $schema);
+        $schema = preg_replace('/CREATE INDEX.*?;/s', '', $schema);
         $schema = preg_replace('/CREATE DATABASE.*?;/s', '', $schema);
-        $schema = preg_replace('/USE paytest;/s', '', $schema);
+        $schema = preg_replace('/--.*?\n/s', '', $schema);
 
         $statements = array_filter(
             array_map('trim', explode(';', $schema))
