@@ -2,7 +2,6 @@
 
 namespace PayTest\Controllers;
 
-use PayTest\DTOs\Response\ApiResponse;
 use PayTest\Services\SessionService;
 use PayTest\Exceptions\UnauthorizedException;
 use PayTest\Config\Logger;
@@ -22,13 +21,22 @@ class SessionController
 
             $sessionInfo = $this->sessionService->getSessionInfo($token);
 
-            return ApiResponse::success($sessionInfo)->toArray();
+            return $this->jsonResponse($response, 200, [
+                'success' => true,
+                'data' => $sessionInfo
+            ]);
 
         } catch (UnauthorizedException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getStatusCode())->toArray();
+            return $this->jsonResponse($response, $e->getStatusCode(), [
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
         } catch (\Exception $e) {
             Logger::error('Failed to get session info', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Failed to retrieve session info', 500)->toArray();
+            return $this->jsonResponse($response, 500, [
+                'success' => false,
+                'error' => 'Failed to retrieve session info'
+            ]);
         }
     }
 
@@ -41,11 +49,25 @@ class SessionController
 
             Logger::info('User logged out', ['token_prefix' => substr($token, 0, 10) . '...']);
 
-            return ApiResponse::success(['message' => 'Logged out successfully'])->toArray();
+            return $this->jsonResponse($response, 200, [
+                'success' => true,
+                'data' => ['message' => 'Logged out successfully']
+            ]);
 
         } catch (\Exception $e) {
             Logger::error('Logout failed', ['error' => $e->getMessage()]);
-            return ApiResponse::error('Logout failed', 500)->toArray();
+            return $this->jsonResponse($response, 500, [
+                'success' => false,
+                'error' => 'Logout failed'
+            ]);
         }
+    }
+
+    private function jsonResponse(ResponseInterface $response, int $status, array $data): ResponseInterface
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response
+            ->withStatus($status)
+            ->withHeader('Content-Type', 'application/json');
     }
 }

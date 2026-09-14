@@ -3,7 +3,6 @@
 namespace PayTest\Exceptions;
 
 use PayTest\Config\Logger;
-use PayTest\DTOs\Response\ApiResponse;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Handlers\ErrorHandler;

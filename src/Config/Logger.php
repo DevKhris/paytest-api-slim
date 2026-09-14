@@ -15,18 +15,30 @@ class Logger
         if (self::$instance === null) {
             self::$instance = new MonologLogger('paytest');
 
-            $logPath = $_ENV['LOG_PATH'] ?? sys_get_temp_dir() . '/app.log';
+            $logPath = $_ENV['LOG_PATH'] ?? self::resolveLogPath();
 
             $streamHandler = new StreamHandler(
                 $logPath,
                 $_ENV['LOG_LEVEL'] ?? MonologLogger::DEBUG
             );
             $streamHandler->setFormatter(new JsonFormatter());
-            
+
             self::$instance->pushHandler($streamHandler);
         }
-        
+
         return self::$instance;
+    }
+
+    private static function resolveLogPath(): string
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $logDir = $projectRoot . '/logs';
+
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+
+        return $logDir . '/app.log';
     }
 
     public static function info(string $message, array $context = []): void
