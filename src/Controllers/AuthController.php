@@ -65,8 +65,6 @@ class AuthController
                 $registerRequest->roomCode
             );
 
-            $this->roomCodeService->markRoomCodeAsUsed($registerRequest->roomCode);
-
             $sessionData = $this->sessionService->createSession(
                 $user->getId(),
                 $request->getServerParams()['REMOTE_ADDR'] ?? null,

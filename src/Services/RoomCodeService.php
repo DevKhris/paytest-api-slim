@@ -18,18 +18,13 @@ class RoomCodeService
         Logger::info('Validating room code', ['code' => $code]);
 
         $stmt = $this->pdo->prepare(
-            'SELECT is_used FROM room_codes WHERE code = :code'
+            'SELECT 1 FROM room_codes WHERE code = :code'
         );
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$row) {
             Logger::warning('Room code not found', ['code' => $code]);
-            return false;
-        }
-
-        if ($row['is_used']) {
-            Logger::warning('Room code already used', ['code' => $code]);
             return false;
         }
 
