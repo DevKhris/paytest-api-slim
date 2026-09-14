@@ -2,22 +2,22 @@
 
 namespace PayTest\Config;
 
-use Monolog\Logger;
+use Monolog\Logger as MonologLogger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\JsonFormatter;
 
 class Logger
 {
-    private static ?Logger $instance = null;
+    private static ?MonologLogger $instance = null;
 
-    public static function getInstance(): Logger
+    public static function getInstance(): MonologLogger
     {
         if (self::$instance === null) {
-            self::$instance = new Logger('paytest');
+            self::$instance = new MonologLogger('paytest');
             
             $streamHandler = new StreamHandler(
                 $_ENV['LOG_PATH'] ?? './logs/app.log',
-                $_ENV['LOG_LEVEL'] ?? Logger::DEBUG
+                $_ENV['LOG_LEVEL'] ?? MonologLogger::DEBUG
             );
             $streamHandler->setFormatter(new JsonFormatter());
             

@@ -20,12 +20,11 @@ class AppErrorHandler extends ErrorHandler
                 'status_code' => $exception->getStatusCode()
             ]);
 
+            $response = $this->responseFactory->createResponse($exception->getStatusCode());
             $body = json_encode(['error' => $exception->getMessage()]);
-            $this->response->getBody()->write($body);
+            $response->getBody()->write($body);
 
-            return $this->response
-                ->withStatus($exception->getStatusCode())
-                ->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Content-Type', 'application/json');
         }
 
         Logger::error('Unhandled exception', [
@@ -34,11 +33,10 @@ class AppErrorHandler extends ErrorHandler
         ]);
 
         $message = $_ENV['APP_DEBUG'] ? $exception->getMessage() : 'Internal server error';
+        $response = $this->responseFactory->createResponse(500);
         $body = json_encode(['error' => $message]);
-        $this->response->getBody()->write($body);
+        $response->getBody()->write($body);
 
-        return $this->response
-            ->withStatus(500)
-            ->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }
