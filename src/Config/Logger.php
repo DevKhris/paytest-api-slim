@@ -14,9 +14,11 @@ class Logger
     {
         if (self::$instance === null) {
             self::$instance = new MonologLogger('paytest');
-            
+
+            $logPath = $_ENV['LOG_PATH'] ?? sys_get_temp_dir() . '/app.log';
+
             $streamHandler = new StreamHandler(
-                $_ENV['LOG_PATH'] ?? __DIR__ . '/../../logs/app.log',
+                $logPath,
                 $_ENV['LOG_LEVEL'] ?? MonologLogger::DEBUG
             );
             $streamHandler->setFormatter(new JsonFormatter());
