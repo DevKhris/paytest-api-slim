@@ -22,11 +22,11 @@ class JwtAuthMiddleware implements MiddlewareInterface
         $authHeader = $request->getHeaderLine('Authorization');
 
         if (empty($authHeader)) {
-            throw new UnauthorizedException('Authorization header is required');
+            throw new UnauthorizedException('Missing or invalid authorization header');
         }
 
         if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
-            throw new UnauthorizedException('Invalid authorization header format');
+            throw new UnauthorizedException('Missing or invalid authorization header');
         }
 
         $token = $matches[1];

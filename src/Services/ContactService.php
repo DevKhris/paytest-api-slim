@@ -8,6 +8,7 @@ use PayTest\Repositories\UserRepositoryInterface;
 use PayTest\Utils\UniqueIdGenerator;
 use PayTest\Exceptions\ValidationException;
 use PayTest\Exceptions\NotFoundException;
+use PayTest\Exceptions\ConflictException;
 use PayTest\Config\Logger;
 
 class ContactService
@@ -33,7 +34,7 @@ class ContactService
         }
 
         if ($this->contactRepository->exists($ownerUserUniqueId, $contactUserUniqueId)) {
-            throw new ValidationException('Contact already exists');
+            throw new ConflictException('Contact already exists');
         }
 
         $contact = new Contact(

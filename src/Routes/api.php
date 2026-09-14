@@ -30,6 +30,6 @@ return function (App $app) {
         // Contacts
         $group->get('/contacts', [ContactController::class, 'listContacts']);
         $group->post('/contacts', [ContactController::class, 'addContact']);
-        $group->delete('/contacts/{id}', [ContactController::class, 'deleteContact']);
+        $group->delete('/contacts/{contactUserId}', [ContactController::class, 'deleteContact']);
     })->add(JwtAuthMiddleware::class);
 };

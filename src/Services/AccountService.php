@@ -13,7 +13,7 @@ use PayTest\Config\Logger;
 class AccountService
 {
     private const MIN_INITIAL_AMOUNT = 100.0;
-    private const MAX_INITIAL_AMOUNT = 500.0;
+    private const MAX_INITIAL_AMOUNT = 1000.0;
 
     public function __construct(
         private AccountRepositoryInterface $accountRepository,

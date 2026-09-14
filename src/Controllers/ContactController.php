@@ -107,11 +107,11 @@ class ContactController
     {
         try {
             $ownerUserUniqueId = $request->getAttribute('user_unique_id');
-            $contactId = $request->getAttribute('id');
+            $contactUserId = $request->getAttribute('contactUserId');
 
-            $this->contactService->removeContact($ownerUserUniqueId, $contactId);
+            $this->contactService->removeContact($ownerUserUniqueId, $contactUserId);
 
-            Logger::info('Contact deleted', ['owner' => $ownerUserUniqueId, 'contact_id' => $contactId]);
+            Logger::info('Contact deleted', ['owner' => $ownerUserUniqueId, 'contact_user_id' => $contactUserId]);
 
             return $this->jsonResponse($response, 200, [
                 'message' => 'Contact deleted'
