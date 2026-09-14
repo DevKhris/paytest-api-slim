@@ -9,7 +9,7 @@ if (!isset($_ENV['APP_ENV'])) {
     $_ENV['APP_ENV'] = 'testing';
 }
 if (!isset($_ENV['APP_DEBUG'])) {
-    $_ENV['APP_DEBUG'] = 'true';
+    $_ENV['APP_DEBUG'] = false;
 }
 
 date_default_timezone_set('UTC');

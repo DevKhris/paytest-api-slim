@@ -32,7 +32,7 @@ class AppErrorHandler extends ErrorHandler
             'trace' => $exception->getTraceAsString()
         ]);
 
-        $message = $_ENV['APP_DEBUG'] ? $exception->getMessage() : 'Internal server error';
+        $message = isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] ? $exception->getMessage() : 'Internal server error';
         $response = $this->responseFactory->createResponse(500);
         $body = json_encode(['error' => $message]);
         $response->getBody()->write($body);
