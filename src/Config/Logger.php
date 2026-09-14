@@ -16,7 +16,7 @@ class Logger
             self::$instance = new MonologLogger('paytest');
             
             $streamHandler = new StreamHandler(
-                $_ENV['LOG_PATH'] ?? './logs/app.log',
+                $_ENV['LOG_PATH'] ?? __DIR__ . '/../../logs/app.log',
                 $_ENV['LOG_LEVEL'] ?? MonologLogger::DEBUG
             );
             $streamHandler->setFormatter(new JsonFormatter());
