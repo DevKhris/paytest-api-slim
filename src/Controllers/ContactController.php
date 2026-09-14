@@ -50,7 +50,7 @@ class ContactController
                     'id' => $contactUserId,
                     'name' => $contactUser?->getName() ?? ''
                 ],
-                'created_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                'created_at' => $contact->getCreatedAt()?->format('Y-m-d\TH:i:s\Z') ?? (new \DateTime())->format('Y-m-d\TH:i:s\Z')
             ]);
 
         } catch (ValidationException $e) {

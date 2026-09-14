@@ -79,7 +79,7 @@ class AuthController
                 'user' => [
                     'userId' => $user->getId(),
                     'name' => $user->getName(),
-                    'created_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                    'created_at' => $user->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
                 ],
                 'token' => [
                     'access_token' => $sessionData['token'],
@@ -121,7 +121,7 @@ class AuthController
                 'user' => [
                     'userId' => $user->getId(),
                     'name' => $user->getName(),
-                    'created_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z')
+                    'created_at' => $user->getCreatedAt()->format('Y-m-d\TH:i:s\Z')
                 ],
                 'token' => [
                     'access_token' => $sessionData['token'],
